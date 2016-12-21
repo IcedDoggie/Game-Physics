@@ -17,7 +17,7 @@ int main()
 
 	while(window.isOpen())
 	{
-
+		//chinkok
 		window.clear(sf::Color(100, 149, 237));
 		window.display();
 	}
