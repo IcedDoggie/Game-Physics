@@ -63,34 +63,31 @@ int main()
 
 	// draw world
 	////1 -> tile, 2-> player 3->slope
-	int worldArray [6][8] = {
-		{0,0,0,0,0,0,0,0},
-		{0,0,0,0,0,0,0,0},
-		{2,0,0,3,0,0,0,0},
-		{1,1,1,1,0,1,1,1},
-		{0,0,0,0,0,0,0,0},
-		{0,0,0,0,0,0,0,0},
+	int worldArray [15][20] = {
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{2,0,3,0,0,0,0,0,0,0,0,0,0,0,0},
+		{1,1,1,1,1,1,0,1,1,1,1,1,1,1,1},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 	};
 
-	sf::VertexArray world(sf::Lines, 8);
+	sf::VertexArray world(sf::Lines, 24);
+	//starting point
 	world[0].position = sf::Vector2f(0,400);
 	world[1].position = sf::Vector2f(400,400);
 
+	//slope
 	world[4].position = sf::Vector2f(200,400);
 	world[5].position = sf::Vector2f(400,300);
 
+	//slope
 	world[6].position = sf::Vector2f(400,300);
 	world[7].position = sf::Vector2f(400,400);
 
 	world[2].position = sf::Vector2f(500,400);
 	world[3].position = sf::Vector2f(800,400);
 
-	sf::CircleShape frontWheel(5);
-	sf::CircleShape backWheel(5);
-
-	//wheels
-	// frontWheel.setPosition(50, 385);
-	// backWheel.setPosition(10, 385);
 
 	//try to draw rectangle as car
 	sf::RectangleShape car_rect(sf::Vector2f(50,20));
@@ -158,12 +155,6 @@ int main()
 		if(gravity > 0.0f)
 		{
 			car_rect.move(0, gravity);
-			float initial_velocity_x = frontWheel.getPosition().x;
-			float initial_velocity_y = frontWheel.getPosition().y;
-			frontWheel.setPosition(initial_velocity_x, initial_velocity_y + gravity);
-			float initial_velocity_x_back = backWheel.getPosition().x;
-			float initial_velocity_y_back = backWheel.getPosition().y;
-			backWheel.setPosition(initial_velocity_x_back, initial_velocity_y_back + gravity);
 		}
 		//move right
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
@@ -171,19 +162,12 @@ int main()
 			initial_velocity_left = 0.0f;
 
 			car_rect.move(initial_velocity_right, 0);
-			float initial_velocity_x = frontWheel.getPosition().x;
-			float initial_velocity_y = frontWheel.getPosition().y;
-			frontWheel.setPosition(initial_velocity_x + initial_velocity_right, initial_velocity_y + gravity);
-			float initial_velocity_x_back = backWheel.getPosition().x;
-			float initial_velocity_y_back = backWheel.getPosition().y;
-			backWheel.setPosition(initial_velocity_x_back + initial_velocity_right, initial_velocity_y_back + gravity);
 			initial_velocity_right += acceleration;
 
 			// move the car in the backend array
-			if(static_cast<int>(frontWheel.getPosition().x) % 100 == 0 &&
+			if(static_cast<int>(car_rect.getPosition().x) % 100 == 0 &&
 			 worldArray[current_position_car_x][current_position_car_y+1] != 3)
 			{
-				frontWheel.setPosition(initial_velocity_x + 1, initial_velocity_y);
 				worldArray[current_position_car_x][current_position_car_y] = 0;
 				current_position_car_y += 1;
 				worldArray[current_position_car_x][current_position_car_y] = 2;
@@ -195,17 +179,10 @@ int main()
 			initial_velocity_right = 0.0f;
 
 			car_rect.move(initial_velocity_left, 0);
-			float initial_velocity_x = frontWheel.getPosition().x;
-			float initial_velocity_y = frontWheel.getPosition().y;
-			frontWheel.setPosition(initial_velocity_x + initial_velocity_left, initial_velocity_y + gravity);
-			float initial_velocity_x_back = backWheel.getPosition().x;
-			float initial_velocity_y_back = backWheel.getPosition().y;
-			backWheel.setPosition(initial_velocity_x_back + initial_velocity_left, initial_velocity_y_back + gravity);
 			initial_velocity_left -= acceleration;
-			if(static_cast<int>(frontWheel.getPosition().x) % 100 == 0 &&
+			if(static_cast<int>(car_rect.getPosition().x) % 100 == 0 &&
 				worldArray[current_position_car_x-1][current_position_car_y] != 3)
 			{
-				frontWheel.setPosition(initial_velocity_x - 1, initial_velocity_y);
 				worldArray[current_position_car_x][current_position_car_y] = 0;
 				current_position_car_y -= 1;
 				worldArray[current_position_car_x][current_position_car_y] = 2;
@@ -213,7 +190,6 @@ int main()
 			if(worldArray[current_position_car_x][current_position_car_y+1] == 0)
 			{
 				cout<<"ping"<<endl;
-				frontWheel.setPosition(initial_velocity_x - 1, initial_velocity_y);
 				worldArray[current_position_car_x][current_position_car_y] = 0;
 				current_position_car_y -= 1;
 				current_position_car_x += 1;
@@ -236,8 +212,6 @@ int main()
 		// Objct Rendering
 		window.draw(car_rect);
 		window.draw(world);
-		// window.draw(frontWheel);
-		// window.draw(backWheel);
 		window.draw(text);
 		window.display();
 	}
