@@ -1,8 +1,34 @@
 #include <SFML/Graphics.hpp>
 #include "WorldBuilder.h"
 #include <iostream>
+#include <cmath>
 
 using namespace std;
+
+int calculateRotation(int rotationAngle, int initialVelocity)
+{
+	rotationAngle = rotationAngle * (M_PI/180);
+	int finalVelocity = initialVelocity * cos(rotationAngle);
+
+	if(initialVelocity > 0 )
+	{
+		// cout<<"Final Velocity: "<<finalVelocity<<endl;
+		// cout<<"Initial Velocity: "<<initialVelocity<<endl;
+		// cout<<"rotationAngle: "<<rotationAngle<<endl;
+	}
+	return finalVelocity;
+}
+
+int calculateCarRotation(int degree, int length_horizontal)
+{
+	int car_pos;
+	int ratio_slope_horizontal;
+	float rad = degree * (M_PI/180);
+	car_pos = length_horizontal / (cos(rad));
+	// cout<<"ratio: "<< car_pos <<" ";
+	return car_pos;
+}
+
 int main()
 {
 	//Physics Variable
@@ -14,13 +40,9 @@ int main()
 	int current_position_car_x = 2;
 	int current_position_car_y = 0;
 
-
-
 	float fixedTimeStep = 0.02f;
 	sf::Clock fixedUpdateClock;
 	float timeElapsedSinceLastFrame = 0;
-
-
 
 	int windowSizeX = 800, windowSizeY = 600;
 	int windowBorderSize = 16;
@@ -28,10 +50,11 @@ int main()
 
 	// window.setVerticalSyncEnabled(true);
 	window.setActive();
-
 	
 	sf::Text text;
 	sf::Font font;
+	sf::Transform rotation;
+	rotation.rotate(10);
 	if(!font.loadFromFile("sansation.ttf"))
 	{
 		cout<< "ping!";
@@ -42,51 +65,36 @@ int main()
 	int worldArray [6][8] = {
 		{0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0,0,0},
-		{2,0,0,0,0,0,0,0},
+		{2,0,0,3,0,0,0,0},
 		{1,1,1,1,0,1,1,1},
-		{0,0,0,0,1,0,0,0},
+		{0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0,0,0},
 	};
 
-	sf::VertexArray world(sf::Lines, 6);
+	sf::VertexArray world(sf::Lines, 8);
 	world[0].position = sf::Vector2f(0,400);
 	world[1].position = sf::Vector2f(400,400);
+
+	world[4].position = sf::Vector2f(200,400);
+	world[5].position = sf::Vector2f(400,300);
+
+	world[6].position = sf::Vector2f(400,300);
+	world[7].position = sf::Vector2f(400,400);
+
 	world[2].position = sf::Vector2f(500,400);
 	world[3].position = sf::Vector2f(800,400);
-	world[4].position = sf::Vector2f(400,500);
-	world[5].position = sf::Vector2f(500,500);
 
-	// draw car
-	sf::VertexArray car(sf::Lines, 16);
 	sf::CircleShape frontWheel(5);
 	sf::CircleShape backWheel(5);
-	//horizontal
-	car[0].position = sf::Vector2f(10, 375);
-	car[1].position = sf::Vector2f(20, 375);
-	//slant line
-	car[8].position = sf::Vector2f(20, 375);
-	car[9].position = sf::Vector2f(30, 360);
-	//horizontal
-	car[2].position = sf::Vector2f(30, 360);
-	car[3].position = sf::Vector2f(50, 360);
-	//slant line
-	car[10].position = sf::Vector2f(50, 360);
-	car[11].position = sf::Vector2f(60, 375);
-	//horizontal
-	car[4].position = sf::Vector2f(60, 375);
-	car[5].position = sf::Vector2f(70, 375);
-	//straight line
-	car[12].position = sf::Vector2f(70, 375);
-	car[13].position = sf::Vector2f(70, 385);
-	//horizontal
-	car[6].position = sf::Vector2f(70, 385);
-	car[7].position = sf::Vector2f(10, 385);
-	//straight line
-	car[14].position = sf::Vector2f(10, 385);
-	car[15].position = sf::Vector2f(10, 375);
+
 	//wheels
-	frontWheel.setPosition(55, 385);
-	backWheel.setPosition(15, 385);
+	frontWheel.setPosition(50, 385);
+	backWheel.setPosition(10, 385);
+
+	//try to draw rectangle as car
+	sf::RectangleShape car_rect(sf::Vector2f(50,20));
+	car_rect.setPosition(10,370);
+	// car_rect.setRotation(45);
 
 
 	while(window.isOpen())
@@ -114,9 +122,9 @@ int main()
 				{
 					if(worldArray[i+1][j] == 0)
 					{
-						//update backend array if car is dropping in terms of y-axis
+						// update backend array if car is dropping in terms of y-axis
 						gravity = 0.1f;
-						worldArray[i+1][j] = 2;
+						
 					} 
 					else
 					{
@@ -126,12 +134,18 @@ int main()
 			}
 		}
 
+		// let car go up slope
+		if(worldArray[current_position_car_x][current_position_car_y + 1] == 3)
+		{
+			int initial_velocity_right_parsed = static_cast<int>(initial_velocity_right * 100);
+			int rotation_speed = calculateRotation(45, initial_velocity_right_parsed);
+			int rotation_car = calculateCarRotation(45, 200);
+		}
+
+		// for car to fall when there is no ground
 		if(gravity > 0.0f)
 		{
-			for(int i=0; i<sizeof(car); i++)
-			{
-				car[i].position += sf::Vector2f(0, gravity);
-			}
+			car_rect.move(0, gravity);
 			float initial_velocity_x = frontWheel.getPosition().x;
 			float initial_velocity_y = frontWheel.getPosition().y;
 			frontWheel.setPosition(initial_velocity_x, initial_velocity_y + gravity);
@@ -139,14 +153,13 @@ int main()
 			float initial_velocity_y_back = backWheel.getPosition().y;
 			backWheel.setPosition(initial_velocity_x_back, initial_velocity_y_back + gravity);
 		}
-		
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
+		//move right
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 		{
 			initial_velocity_left = -0.01f;
-			for(int i=0; i<sizeof(car); i++)
-			{
-				car[i].position += sf::Vector2f(initial_velocity_right,0);
-			}
+
+			car_rect.move(initial_velocity_right, 0);
+			cout<<"car rect: "<<car_rect.getPosition().x<<" ";
 			float initial_velocity_x = frontWheel.getPosition().x;
 			float initial_velocity_y = frontWheel.getPosition().y;
 			frontWheel.setPosition(initial_velocity_x + initial_velocity_right, initial_velocity_y + gravity);
@@ -163,12 +176,12 @@ int main()
 				current_position_car_y += 1;
 				worldArray[current_position_car_x][current_position_car_y] = 2;
 				cout<<"car: "<<current_position_car_x<<endl;
-				if(worldArray[current_position_car_x+1][current_position_car_y] == 0)
-				{
-					worldArray[current_position_car_x][current_position_car_y] = 0;
-					current_position_car_x += 1;
-					worldArray[current_position_car_x][current_position_car_y] = 2;
-				}
+				// if(worldArray[current_position_car_x+1][current_position_car_y] == 0)
+				// {
+				// 	worldArray[current_position_car_x][current_position_car_y] = 0;
+				// 	current_position_car_x += 1;
+				// 	worldArray[current_position_car_x][current_position_car_y] = 2;
+				// }
 
 				for(int m=0; m<6; m++)
 				{
@@ -180,14 +193,12 @@ int main()
 				}
 			}
 		}
-
-		if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
+		//move left
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 		{
 			initial_velocity_right = 0.01f;
-			for(int i=0; i<sizeof(car); i++)
-			{
-				car[i].position += sf::Vector2f(initial_velocity_left, 0);
-			}
+
+			car_rect.move(initial_velocity_left, 0);
 			float initial_velocity_x = frontWheel.getPosition().x;
 			float initial_velocity_y = frontWheel.getPosition().y;
 			frontWheel.setPosition(initial_velocity_x + initial_velocity_left, initial_velocity_y + gravity);
@@ -210,9 +221,8 @@ int main()
 		window.clear(sf::Color(0,0,0));
 
 		// Objct Rendering
-
+		window.draw(car_rect);
 		window.draw(world);
-		window.draw(car);
 		window.draw(frontWheel);
 		window.draw(backWheel);
 		window.draw(text);
