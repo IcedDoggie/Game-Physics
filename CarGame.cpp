@@ -35,6 +35,7 @@ int main()
 	float initial_velocity_right = 0.01f;
 	float initial_velocity_left = -0.01f;
 	float acceleration = 0.0001f;
+	float deceleration = -0.0001f;
 	float moving_time = 0.0f;
 	float gravity = 0.0f;
 	int current_position_car_x = 2;
@@ -61,7 +62,7 @@ int main()
 	}
 
 	// draw world
-	////1 -> tile, 2-> player
+	////1 -> tile, 2-> player 3->slope
 	int worldArray [6][8] = {
 		{0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0,0,0},
@@ -88,8 +89,8 @@ int main()
 	sf::CircleShape backWheel(5);
 
 	//wheels
-	frontWheel.setPosition(50, 385);
-	backWheel.setPosition(10, 385);
+	// frontWheel.setPosition(50, 385);
+	// backWheel.setPosition(10, 385);
 
 	//try to draw rectangle as car
 	sf::RectangleShape car_rect(sf::Vector2f(50,20));
@@ -98,9 +99,7 @@ int main()
 
 
 	while(window.isOpen())
-	{
-		// cout<<"Current position: "<<current_position_car<<endl;
-		
+	{	
 		sf::Event event;
 
 		text.setString("Testing For a Car");
@@ -135,11 +134,24 @@ int main()
 		}
 
 		// let car go up slope
-		if(worldArray[current_position_car_x][current_position_car_y + 1] == 3)
+		if(worldArray[current_position_car_x][current_position_car_y + 1] == 3 && initial_velocity_right > 0)
 		{
+
 			int initial_velocity_right_parsed = static_cast<int>(initial_velocity_right * 100);
 			int rotation_speed = calculateRotation(45, initial_velocity_right_parsed);
 			int rotation_car = calculateCarRotation(45, 200);
+			car_rect.rotate(-30);
+			// frontWheel.rotate(-30);
+			// backWheel.rotate(-30);
+			
+			// update world array
+			worldArray[current_position_car_x - 1][current_position_car_y + 1] = 2;
+			worldArray[current_position_car_x][current_position_car_y] = 0;
+
+			// update car position
+			current_position_car_x = current_position_car_x - 1;
+			current_position_car_y = current_position_car_y + 1;
+	
 		}
 
 		// for car to fall when there is no ground
@@ -156,10 +168,9 @@ int main()
 		//move right
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right))
 		{
-			initial_velocity_left = -0.01f;
+			initial_velocity_left = 0.0f;
 
 			car_rect.move(initial_velocity_right, 0);
-			cout<<"car rect: "<<car_rect.getPosition().x<<" ";
 			float initial_velocity_x = frontWheel.getPosition().x;
 			float initial_velocity_y = frontWheel.getPosition().y;
 			frontWheel.setPosition(initial_velocity_x + initial_velocity_right, initial_velocity_y + gravity);
@@ -169,34 +180,19 @@ int main()
 			initial_velocity_right += acceleration;
 
 			// move the car in the backend array
-			if(static_cast<int>(frontWheel.getPosition().x) % 100 == 0)
+			if(static_cast<int>(frontWheel.getPosition().x) % 100 == 0 &&
+			 worldArray[current_position_car_x][current_position_car_y+1] != 3)
 			{
 				frontWheel.setPosition(initial_velocity_x + 1, initial_velocity_y);
 				worldArray[current_position_car_x][current_position_car_y] = 0;
 				current_position_car_y += 1;
 				worldArray[current_position_car_x][current_position_car_y] = 2;
-				cout<<"car: "<<current_position_car_x<<endl;
-				// if(worldArray[current_position_car_x+1][current_position_car_y] == 0)
-				// {
-				// 	worldArray[current_position_car_x][current_position_car_y] = 0;
-				// 	current_position_car_x += 1;
-				// 	worldArray[current_position_car_x][current_position_car_y] = 2;
-				// }
-
-				for(int m=0; m<6; m++)
-				{
-					for(int n=0; n<8; n++)
-					{
-						cout<<worldArray[m][n]<<" ";
-					}
-					cout<<endl;
-				}
 			}
 		}
 		//move left
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
 		{
-			initial_velocity_right = 0.01f;
+			initial_velocity_right = 0.0f;
 
 			car_rect.move(initial_velocity_left, 0);
 			float initial_velocity_x = frontWheel.getPosition().x;
@@ -206,25 +202,42 @@ int main()
 			float initial_velocity_y_back = backWheel.getPosition().y;
 			backWheel.setPosition(initial_velocity_x_back + initial_velocity_left, initial_velocity_y_back + gravity);
 			initial_velocity_left -= acceleration;
-			if(static_cast<int>(frontWheel.getPosition().x) % 100 == 0)
+			if(static_cast<int>(frontWheel.getPosition().x) % 100 == 0 &&
+				worldArray[current_position_car_x-1][current_position_car_y] != 3)
 			{
 				frontWheel.setPosition(initial_velocity_x - 1, initial_velocity_y);
+				worldArray[current_position_car_x][current_position_car_y] = 0;
 				current_position_car_y -= 1;
-				cout<<"car: "<<current_position_car_y<<endl;
+				worldArray[current_position_car_x][current_position_car_y] = 2;
 			}
+			if(worldArray[current_position_car_x][current_position_car_y+1] == 0)
+			{
+				cout<<"ping"<<endl;
+				frontWheel.setPosition(initial_velocity_x - 1, initial_velocity_y);
+				worldArray[current_position_car_x][current_position_car_y] = 0;
+				current_position_car_y -= 1;
+				current_position_car_x += 1;
+				worldArray[current_position_car_x][current_position_car_y] = 2;
+				car_rect.rotate(30);
+			}
+			for(int m=0; m<6; m++)
+			{
+				for(int n=0; n<8; n++)
+				{
+					cout<<worldArray[m][n]<<" ";
+				}
+				cout<<endl;
+			}		
 		}
 
-
-
-	
 		// Rendering
 		window.clear(sf::Color(0,0,0));
 
 		// Objct Rendering
 		window.draw(car_rect);
 		window.draw(world);
-		window.draw(frontWheel);
-		window.draw(backWheel);
+		// window.draw(frontWheel);
+		// window.draw(backWheel);
 		window.draw(text);
 		window.display();
 	}
