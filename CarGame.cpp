@@ -119,10 +119,11 @@ int main()
 			if(event.type == sf::Event::Closed)
 				window.close();
 		}
+		cout<<current_position_car_x<<endl;
 		// check if what is below the car is empty
 		if(worldArray[current_position_car_x+1][current_position_car_y] == 0 && initial_velocity_right >0)
 		{
-			cout<<current_position_car_x<<endl;
+			
 			// update backend
 			worldArray[current_position_car_x][current_position_car_y] = 0;
 			current_position_car_x += 1;
@@ -212,7 +213,7 @@ int main()
 			initial_velocity_right += acceleration;
 
 			// move the car in the backend array
-			if(static_cast<int>(car_rect.getPosition().x) % 20 == 0 &&
+			if(static_cast<int>(car_rect.getPosition().x) % 100 == 0 &&
 			 worldArray[current_position_car_x][current_position_car_y+1] != 3)
 			{
 				worldArray[current_position_car_x][current_position_car_y] = 0;
