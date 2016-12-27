@@ -145,40 +145,6 @@ int main()
 			gravity = 0.0f;
 		}
 
-
-
-
-		// for(int i=0; i<15; i++)
-		// {
-		// 	for(int j=0; j<20; j++)
-		// 	{
-		// 		if(worldArray[i][j] == 2)
-		// 		{
-		// 			if(worldArray[i+1][j] == 0)
-		// 			{
-		// 				cout<<"Falling...\n";
-		// 				// update backend array if car is dropping in terms of y-axis
-		// 				worldArray[current_position_car_x][current_position_car_y] = 0;
-		// 				current_position_car_x -= 1;
-		// 				worldArray[current_position_car_x + 1][current_position_car_y] = 2;
-		// 				gravity = 0.1f;	
-		// 			}
-
-		// 			else if(worldArray[i+1][j] == 3)
-		// 			{
-		// 				cout<<"On slope!\n";
-		// 				gravity = 0.0f;
-		// 			}
-
-		// 			else if(worldArray[i+1][j] == 1)
-		// 			{
-		// 				cout<<"no gravity!\n";
-		// 				gravity = 0.0f;
-		// 			}
-		// 		}
-		// 	}
-		// }
-
 		// let car go up slope
 		if(worldArray[current_position_car_x][current_position_car_y + 1] == 3 && initial_velocity_right > 0)
 		{
