@@ -2,6 +2,7 @@
 #include "WorldBuilder.h"
 #include <iostream>
 #include <cmath>
+#include <ctime>
 
 using namespace std;
 
@@ -40,6 +41,11 @@ int main()
 	float gravity = 0.0f;
 	int current_position_car_x = 2;
 	int current_position_car_y = 0;
+	bool on_slope = false;
+	bool bump = false;
+	int key_hold_time = 0;
+	clock_t start;
+	double duration;	
 
 	float fixedTimeStep = 0.02f;
 	sf::Clock fixedUpdateClock;
@@ -62,12 +68,17 @@ int main()
 	}
 
 	// draw world
-	////1 -> tile, 2-> player 3->slope
-	int worldArray [15][20] = {
+	////1 -> tile, 2-> player 3->slope, x-> 40, y->30, y must get ahead of 30 to make things fall
+	int worldArray [20][20] = {
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-		{2,0,3,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
-		{1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+		{2,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{1,1,1,0,0,0,0,0,0,0,0,0,0,0,0,0,1,1,1,1},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
+		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
 		{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0},
@@ -84,15 +95,7 @@ int main()
 	sf::VertexArray world(sf::Lines, 24);
 	//starting point
 	world[0].position = sf::Vector2f(0,400);
-	world[1].position = sf::Vector2f(400,400);
-
-	//slope
-	world[4].position = sf::Vector2f(200,400);
-	world[5].position = sf::Vector2f(400,300);
-
-	//slope
-	world[6].position = sf::Vector2f(400,300);
-	world[7].position = sf::Vector2f(400,400);
+	world[1].position = sf::Vector2f(150,400);
 
 	//ending point
 	world[2].position = sf::Vector2f(500,400);
@@ -108,6 +111,7 @@ int main()
 	while(window.isOpen())
 	{	
 		sf::Event event;
+		//system time
 
 		text.setString("Testing For a Car");
 		text.setFont(font);
@@ -119,7 +123,7 @@ int main()
 			if(event.type == sf::Event::Closed)
 				window.close();
 		}
-		cout<<current_position_car_x<<endl;
+		// cout<<current_position_car_x<<endl;
 		// check if what is below the car is empty
 		if(worldArray[current_position_car_x+1][current_position_car_y] == 0 && initial_velocity_right >0)
 		{
@@ -128,14 +132,7 @@ int main()
 			worldArray[current_position_car_x][current_position_car_y] = 0;
 			current_position_car_x += 1;
 			worldArray[current_position_car_x][current_position_car_y] = 2;
-			for(int m=0; m<15; m++)
-			{
-				for(int n=0; n<20; n++)
-				{
-					// cout<<worldArray[m][n]<<" ";
-				}
-				// cout<<endl;
-			}	
+			
 			cout<<endl;		
 			gravity = 0.01f;		
 		}
@@ -148,11 +145,10 @@ int main()
 		// let car go up slope
 		if(worldArray[current_position_car_x][current_position_car_y + 1] == 3 && initial_velocity_right > 0)
 		{
-
 			int initial_velocity_right_parsed = static_cast<int>(initial_velocity_right * 100);
 			int rotation_speed = calculateRotation(45, initial_velocity_right_parsed);
 			int rotation_car = calculateCarRotation(45, 200);
-			
+			on_slope = true;
 			// visualize
 			car_rect.rotate(-30);
 
@@ -179,13 +175,28 @@ int main()
 			initial_velocity_right += acceleration;
 
 			// move the car in the backend array
-			if(static_cast<int>(car_rect.getPosition().x) % 100 == 0 &&
+			if(static_cast<int>(car_rect.getPosition().x) % 150 == 0 &&
 			 worldArray[current_position_car_x][current_position_car_y+1] != 3)
 			{
+				// for(int m=0; m<15; m++)
+				// {
+				// 	for(int n=0; n<20; n++)
+				// 	{
+				// 		cout<<worldArray[m][n]<<" ";
+				// 	}
+				// 	cout<<endl;
+				// }
 				worldArray[current_position_car_x][current_position_car_y] = 0;
 				current_position_car_y += 1;
 				worldArray[current_position_car_x][current_position_car_y] = 2;
 			}
+			if(static_cast<int>(car_rect.getPosition().x) % 100 == 0 &&
+			 on_slope==true)
+			{
+				car_rect.setPosition(150, 400);
+				car_rect.move(initial_velocity_right, 0);
+			}
+
 		}
 		//move left
 		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left))
@@ -209,7 +220,30 @@ int main()
 				// current_position_car_x += 1;
 				worldArray[current_position_car_x][current_position_car_y] = 2;
 				car_rect.rotate(30);
+				on_slope = false;
 			}
+		}
+
+		//bump
+
+		else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up))
+		{
+			car_rect.move(0, -0.05);
+			start = clock();
+			key_hold_time += 1; 
+			cout<<"Hold time: "<<key_hold_time<<endl;
+			bump = true;
+		}
+
+		else if(key_hold_time > 0 && bump == true)
+		{
+			car_rect.move(0, 0.05);
+			key_hold_time -= 0.5;
+			if(key_hold_time == 0)
+			{
+				bump = false;
+			}
+			cout<<"Clock: "<<key_hold_time<<endl;
 
 		}
 
