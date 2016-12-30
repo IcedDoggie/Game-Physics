@@ -67,6 +67,9 @@ int main()
 	int points = 0;
 	bool checkHold = false;
 	clock_t start;
+	clock_t gameTime_score;
+	clock_t gameTime_ends;
+	bool gameOver = false;
 	// clock_t 
 
 	if(!texture.loadFromFile("football.jpg"))
@@ -86,13 +89,14 @@ int main()
 	while(window.isOpen())
 	{	
 		sf::Event event;	
+		gameTime_score = clock();
 		// trigger the ball to move up
 		if(event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left &&
-			checkHold == false
+			checkHold == false && gameOver == false
 			&& (abs(event.mouseButton.x - ball.getPosition().x) <= 50 
 			|| abs(event.mouseButton.y - ball.getPosition().y) <= 50))
 		{
-			u_velocity = -2.0f;
+			u_velocity = -3.0f;
 			horizontal_direction = 0.07f;
 			start = 1;
 			checkHold = true;
@@ -112,7 +116,8 @@ int main()
 			u_velocity, horizontal_direction = calculateRotation(rotation, u_velocity, horizontal_direction);
 			// update score
 			points += 1;
-			string temp = NumberToString(points);
+			gameTime_score = gameTime_score / (float) CLOCKS_PER_SEC;
+			string temp = NumberToString(gameTime_score);
 			score.setString(temp);
 			score.setFont(font);
 			score.setCharacterSize(16);
@@ -132,24 +137,23 @@ int main()
 				start = 100;
 			}
 			ball.move(horizontal_direction, v_velocity);
+			u_velocity = v_velocity;
 
 			// trigger when touches edges on both sides
-			if( ball.getPosition().x >= 800 || ball.getPosition().x <=0)
+			if( ball.getPosition().x >= 700 || ball.getPosition().x <=0)
 			{
-				v_velocity = -v_velocity * 2.0f;
-				horizontal_direction = -horizontal_direction * 1.5f;
-				cout<<-horizontal_direction<<" "<<v_velocity<<endl;
-				ball.move(-horizontal_direction, v_velocity);
+				cout<<"before: "<<horizontal_direction<<" "<<u_velocity<<endl;
+				u_velocity = -u_velocity * 12.0f;
+				horizontal_direction = -horizontal_direction * 30.5f;
+				cout<<"after: "<<horizontal_direction<<" "<<u_velocity<<endl;
+				ball.move(horizontal_direction, 0);
 			}
 
 			if( ball.getPosition().y <= 0)
 			{
 				gravity += 0.001f;
 			}
-			// cout<< horizontal_direction<< " "<< v_velocity<<endl;
-			u_velocity = v_velocity;
 		}
-
 
 		// trigger the ball to move down
 		else
@@ -166,16 +170,19 @@ int main()
 		}
 
 		// display text
-		if(ball.getPosition().y >= 600)
+		if(ball.getPosition().y >= 600 && gameOver == false)
 		{
-			gameStatus.setString("Lose");
+			gameTime_score = gameTime_score / (float) CLOCKS_PER_SEC;
+			string temp = NumberToString(gameTime_score);
+			gameStatus.setString("Lose, You've survived " + temp + " seconds!");
 			gameStatus.setFont(font);
 			gameStatus.setCharacterSize(16);
 			gameStatus.setPosition(400.0f, 100.0f);
 			gameStatus.setColor(sf::Color::White);	
+			gameOver = true;
 		}
 
-		// Rendering
+		// Rendering	
 		window.clear(sf::Color(0,0,0));
 		window.draw(ball);
 		window.draw(score);
