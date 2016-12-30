@@ -60,7 +60,7 @@ int main()
 	float v_velocity = 0.00f;
 	float step_velocity = 0.01f;
 	float rotation;
-	float horizontal_direction = 0.03f;
+	float horizontal_direction = 0.0f;
 	float bounce_time = 1.0f;
 
 	// Game Variable
@@ -97,7 +97,7 @@ int main()
 			|| abs(event.mouseButton.y - ball.getPosition().y) <= 50))
 		{
 			u_velocity = -3.0f;
-			horizontal_direction = 0.07f;
+			horizontal_direction = 0.01f;
 			start = 1;
 			checkHold = true;
 			// ball.move(0, -u_velocity);
@@ -140,13 +140,13 @@ int main()
 			u_velocity = v_velocity;
 
 			// trigger when touches edges on both sides
-			if( ball.getPosition().x >= 700 || ball.getPosition().x <=0)
+			if( ball.getPosition().x >= 700 || ball.getPosition().x <=10)
 			{
 				cout<<"before: "<<horizontal_direction<<" "<<u_velocity<<endl;
-				u_velocity = -u_velocity * 12.0f;
-				horizontal_direction = -horizontal_direction * 30.5f;
+				u_velocity = -u_velocity * 5.0f;
+				horizontal_direction = -horizontal_direction * 5.5f;
 				cout<<"after: "<<horizontal_direction<<" "<<u_velocity<<endl;
-				ball.move(horizontal_direction, 0);
+				ball.move(horizontal_direction, u_velocity);
 			}
 
 			if( ball.getPosition().y <= 0)
@@ -159,7 +159,12 @@ int main()
 		else
 		{
 			checkHold = false;
-			ball.move(0, gravity);
+			ball.move(horizontal_direction, gravity);
+			if(ball.getPosition().x >= 700 || ball.getPosition().x <=10 )
+			{
+				horizontal_direction = -horizontal_direction;
+				ball.move(horizontal_direction, gravity);
+			}
 			// cout<<"ball x: "<< ball.getPosition().x<<" ";		
 		}
 
