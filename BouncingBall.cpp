@@ -10,7 +10,13 @@ using namespace std;
 
 float calculateRotation(float degree, float up_direction, float horizontal_direction)
 {
-
+	float resultant_direction;
+	// convert degree to radian
+	float radian = degree * (3.142 / 180);
+	up_direction =  up_direction * radian;
+	horizontal_direction = horizontal_direction * radian * 10.0f;
+	// cout<< radian<< endl;
+	return up_direction, horizontal_direction;	
 }
 
 float calculateGravityEffectUp(float velocity, float acceleration, float bounce_time)
@@ -54,13 +60,14 @@ int main()
 	float v_velocity = 0.00f;
 	float step_velocity = 0.01f;
 	float rotation;
-	float horizontal_direction = 0.0f;
+	float horizontal_direction = 0.03f;
 	float bounce_time = 1.0f;
 
 	// Game Variable
 	int points = 0;
 	bool checkHold = false;
 	clock_t start;
+	// clock_t 
 
 	if(!texture.loadFromFile("football.jpg"))
 	{
@@ -69,6 +76,7 @@ int main()
 	if(!font.loadFromFile("sansation.ttf"))
 	{
 	}
+
 	ball.setTextureRect(sf::IntRect(35,0,190,190));
 	ball.setTexture(&texture);
 
@@ -81,15 +89,27 @@ int main()
 		// trigger the ball to move up
 		if(event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left &&
 			checkHold == false
-			&& (abs(event.mouseButton.x - ball.getPosition().x) >= 25 
-			|| abs(event.mouseButton.y - ball.getPosition().y) >= 25
-			|| abs(event.mouseButton.x - ball.getPosition().x) <= 25 
-			|| abs(event.mouseButton.y - ball.getPosition().y) <= 25))
+			&& (abs(event.mouseButton.x - ball.getPosition().x) <= 50 
+			|| abs(event.mouseButton.y - ball.getPosition().y) <= 50))
 		{
-			u_velocity = -0.2f;
+			u_velocity = -2.0f;
+			horizontal_direction = 0.07f;
 			start = 1;
 			checkHold = true;
 			// ball.move(0, -u_velocity);
+
+			// calculate rotation
+			// cout<<event.mouseButton.x - ball.getPosition().x<<endl;
+			if( (event.mouseButton.x - ball.getPosition().x) > 0 )
+			{
+				rotation = -45.0f;
+			}
+
+			else if( (event.mouseButton.x - ball.getPosition().x < 0) )
+			{
+				rotation = 45.0f;
+			}
+			u_velocity, horizontal_direction = calculateRotation(rotation, u_velocity, horizontal_direction);
 			// update score
 			points += 1;
 			string temp = NumberToString(points);
@@ -101,12 +121,32 @@ int main()
 		}
 
 		// allowing the ball to move in a decelerating way
-		else if(start%100!=0 && checkHold == true && u_velocity < 0)
+		else if(start%100!=0 && checkHold == true )
 		{
 			start = clock();
-			cout<<u_velocity<<endl;
+			// cout<<u_velocity<<endl;
 			v_velocity = calculateGravityEffectUp(u_velocity, gravity, bounce_time);
-			ball.move(0, v_velocity);
+			// check for repeated calculation
+			if( (v_velocity < u_velocity) || v_velocity > 0)
+			{
+				start = 100;
+			}
+			ball.move(horizontal_direction, v_velocity);
+
+			// trigger when touches edges on both sides
+			if( ball.getPosition().x >= 800 || ball.getPosition().x <=0)
+			{
+				v_velocity = -v_velocity * 2.0f;
+				horizontal_direction = -horizontal_direction * 1.5f;
+				cout<<-horizontal_direction<<" "<<v_velocity<<endl;
+				ball.move(-horizontal_direction, v_velocity);
+			}
+
+			if( ball.getPosition().y <= 0)
+			{
+				gravity += 0.001f;
+			}
+			// cout<< horizontal_direction<< " "<< v_velocity<<endl;
 			u_velocity = v_velocity;
 		}
 
@@ -115,7 +155,6 @@ int main()
 		else
 		{
 			checkHold = false;
-
 			ball.move(0, gravity);
 			// cout<<"ball x: "<< ball.getPosition().x<<" ";		
 		}
